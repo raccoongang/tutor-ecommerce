@@ -13,7 +13,7 @@ RUN useradd --home-dir /openedx --create-home --shell /bin/bash --uid ${APP_USER
 USER ${APP_USER_ID}
 
 RUN mkdir /openedx/ecommerce_worker && \
-    git clone https://github.com/openedx-unsupported/ecommerce-worker.git --branch open-release/sumac.master --depth 1 /openedx/ecommerce_worker
+    git clone https://github.com/raccoongang/ecommerce-worker.git --branch release/teak --depth 1 /openedx/ecommerce_worker
 WORKDIR /openedx/ecommerce_worker
 
 # Install pyenv

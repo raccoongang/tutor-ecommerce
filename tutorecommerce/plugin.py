@@ -72,13 +72,13 @@ def _add_ecommerce_mfe_apps(
     apps.update(
         {
             "orders": {
-                "repository": "https://github.com/openedx/frontend-app-ecommerce.git",
-                "version": "open-release/sumac.master",
+                "repository": "https://github.com/raccoongang/frontend-app-ecommerce.git",
+                "version": "release/teak",
                 "port": 7296,
             },
             "payment": {
-                "repository": "https://github.com/openedx/frontend-app-payment.git",
-                "version": "open-release/sumac.master",
+                "repository": "https://github.com/raccoongang/frontend-app-payment.git",
+                "version": "release/teak",
                 "port": 1998,
             },
         }
