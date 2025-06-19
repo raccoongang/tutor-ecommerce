@@ -53,5 +53,6 @@
 ./manage.py lms configure_commerce
 
 # Enable order bistory microfrontend
-site-configuration set ENABLE_ORDER_HISTORY_MICROFRONTEND true
+./manage.py lms create_or_update_site_configuration {{ LMS_HOST }} --configuration '{"ENABLE_ORDER_HISTORY_MICROFRONTEND": true}' --enabled
+./manage.py lms create_or_update_site_configuration {{ LMS_HOST }}:8000 --configuration '{"ENABLE_ORDER_HISTORY_MICROFRONTEND": true}' --enabled
 (./manage.py lms waffle_switch --list | grep order_history.redirect_to_microfrontend) || ./manage.py lms waffle_switch --create order_history.redirect_to_microfrontend on
