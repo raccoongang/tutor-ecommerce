@@ -64,6 +64,13 @@ config = {
     },
 }
 
+tutor_hooks.Filters.ENV_PATCHES.add_items([
+    (
+        "mfe-dockerfile-pre-npm-install-orders",
+        "ENV ECOMMERCE_BASE_URL={{ 'https' if ENABLE_HTTPS else 'http' }}://{{ ECOMMERCE_HOST }}"
+    ),
+])
+
 
 @MFE_APPS.add()  # type: ignore
 def _add_ecommerce_mfe_apps(
@@ -75,11 +82,6 @@ def _add_ecommerce_mfe_apps(
                 "repository": "https://github.com/raccoongang/frontend-app-ecommerce.git",
                 "version": "release/teak",
                 "port": 7296,
-            },
-            "payment": {
-                "repository": "https://github.com/raccoongang/frontend-app-payment.git",
-                "version": "release/teak",
-                "port": 1998,
             },
         }
     )
