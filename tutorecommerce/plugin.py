@@ -80,7 +80,7 @@ def _add_ecommerce_mfe_apps(
         {
             "orders": {
                 "repository": "https://github.com/raccoongang/frontend-app-ecommerce.git",
-                "version": "release/teak",
+                "version": "teak-rg",
                 "port": 7296,
             },
         }
