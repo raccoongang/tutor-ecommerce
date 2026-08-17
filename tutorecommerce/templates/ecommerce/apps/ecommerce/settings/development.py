@@ -7,8 +7,6 @@ CORS_ORIGIN_WHITELIST = list(CORS_ORIGIN_WHITELIST)
 {% if app_name == "orders" %}
 CORS_ORIGIN_WHITELIST.append("http://{{ MFE_HOST }}:{{ app['port'] }}")
 CSRF_TRUSTED_ORIGINS = ["{{ MFE_HOST }}:{{ app['port'] }}"]
-{% elif app_name == "payment" %}
-CORS_ORIGIN_WHITELIST.append("http://{{ MFE_HOST }}:{{ app['port'] }}")
 {% endif %}
 {% endfor %}
 
