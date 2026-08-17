@@ -20,6 +20,10 @@ config = {
         "VERSION": __version__,
         "API_TIMEOUT": 5,
         "CURRENCY": "USD",
+        "REPOSITORY": "https://gitlab.raccoongang.com/products/rg-oex/ecommerce.git",
+        "REPOSITORY_VERSION": "verawood-rg",
+        "WORKER_REPOSITORY": "https://github.com/raccoongang/ecommerce-worker.git",
+        "WORKER_REPOSITORY_VERSION": "release/verawood",
         "DOCKER_IMAGE": "{{ DOCKER_REGISTRY }}overhangio/openedx-ecommerce:{{ ECOMMERCE_VERSION }}",
         "WORKER_DOCKER_IMAGE": "{{ DOCKER_REGISTRY }}overhangio/openedx-ecommerce-worker:{{ ECOMMERCE_VERSION }}",
         "EXTRA_PIP_REQUIREMENTS": [],
@@ -80,7 +84,7 @@ def _add_ecommerce_mfe_apps(
         {
             "orders": {
                 "repository": "https://github.com/raccoongang/frontend-app-ecommerce.git",
-                "version": "teak-rg",
+                "version": "verawood-rg",
                 "port": 7296,
             },
         }
@@ -143,19 +147,6 @@ tutor_hooks.Filters.IMAGES_PUSH.add_items(
         ),
     ]
 )
-for mfe in ["orders", "payment"]:
-    name = f"{mfe}-dev"
-    tag = "{{ DOCKER_REGISTRY }}overhangio/openedx-" + mfe + "-dev:{{ MFE_VERSION }}"
-    tutor_hooks.Filters.IMAGES_BUILD.add_item(
-        (
-            name,
-            ("plugins", "mfe", "build", "mfe"),
-            tag,
-            (f"--target={mfe}-dev",),
-        )
-    )
-    tutor_hooks.Filters.IMAGES_PULL.add_item((name, tag))
-    tutor_hooks.Filters.IMAGES_PUSH.add_item((name, tag))
 
 ####### Boilerplate code
 # Add the "templates" folder as a template root
@@ -211,9 +202,7 @@ def _mount_ecommerce_apps(
     if path_basename == "ecommerce":
         mounts += [("ecommerce", "/openedx/ecommerce")]
     elif path_basename == "frontend-app-ecommerce":
-        # payment MFE will be handled by the tutor-mfe plugin, but we need to fix the
-        # auto-mount for the ecommerce/order MFE
-        mounts.remove(("ecommerce", "/openedx/app"))
+        # Add only: tutor-mfe no longer contributes the entry this removed, and .remove() would raise.
         mounts.append(("orders", "/openedx/app"))
     return mounts
 
@@ -227,10 +216,6 @@ def _mount_ecommerce_on_build(
     if path_basename == "ecommerce":
         mounts.append(("ecommerce", "ecommerce-src"))
     elif path_basename == "frontend-app-ecommerce":
-        # payment MFE will be handled by the tutor-mfe plugin, but we need to fix the
-        # auto-mount for the ecommerce/order MFE
-        mounts.remove(("mfe", "ecommerce-src"))
-        mounts.remove(("ecommerce-dev", "ecommerce-src"))
         mounts.append(("mfe", "orders-src"))
         mounts.append(("orders-dev", "orders-src"))
     return mounts

@@ -4,16 +4,19 @@ FROM docker.io/ubuntu:20.04 AS minimal
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    sed -i 's|http://archive.ubuntu.com|https://archive.ubuntu.com|g; s|http://security.ubuntu.com|https://security.ubuntu.com|g' /etc/apt/sources.list && \
+    apt -o Acquire::https::Verify-Peer=false update && \
+    apt -o Acquire::https::Verify-Peer=false install -y ca-certificates && \
     apt update && \
     apt install -y curl git-core language-pack-en libmysqlclient-dev \
-    libssl-dev libffi-dev build-essential 
+    libssl-dev libffi-dev build-essential
 
 ARG APP_USER_ID=1000
 RUN useradd --home-dir /openedx --create-home --shell /bin/bash --uid ${APP_USER_ID} app
 USER ${APP_USER_ID}
 
 RUN mkdir /openedx/ecommerce_worker && \
-    git clone https://github.com/raccoongang/ecommerce-worker.git --branch release/teak --depth 1 /openedx/ecommerce_worker
+    git clone {{ ECOMMERCE_WORKER_REPOSITORY }} --branch {{ ECOMMERCE_WORKER_REPOSITORY_VERSION }} --depth 1 /openedx/ecommerce_worker
 WORKDIR /openedx/ecommerce_worker
 
 # Install pyenv

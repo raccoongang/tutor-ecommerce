@@ -5,14 +5,17 @@ FROM docker.io/ubuntu:20.04 AS minimal
 ENV DEBIAN_FRONTEND=noninteractive
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    sed -i 's|http://archive.ubuntu.com|https://archive.ubuntu.com|g; s|http://security.ubuntu.com|https://security.ubuntu.com|g' /etc/apt/sources.list && \
+    apt -o Acquire::https::Verify-Peer=false update && \
+    apt -o Acquire::https::Verify-Peer=false install -y ca-certificates && \
     apt update && \
     apt install -y curl gettext git-core language-pack-en
 
 ###### Checkout code
 FROM minimal AS checkout
 
-ARG ECOMMERCE_REPOSITORY=https://github.com/raccoongang/ecommerce.git
-ARG ECOMMERCE_VERSION='release/teak'
+ARG ECOMMERCE_REPOSITORY='{{ ECOMMERCE_REPOSITORY }}'
+ARG ECOMMERCE_VERSION='{{ ECOMMERCE_REPOSITORY_VERSION }}'
 RUN mkdir -p /openedx/ecommerce && \
     git clone $ECOMMERCE_REPOSITORY --branch $ECOMMERCE_VERSION --depth 1 /openedx/ecommerce
 
