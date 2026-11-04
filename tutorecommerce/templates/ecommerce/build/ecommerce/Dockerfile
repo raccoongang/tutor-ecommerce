@@ -11,6 +11,21 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt update && \
     apt install -y curl gettext git-core language-pack-en
 
+# Newer Ubuntu releases distrust the emSign ECC Root CA - G3 over the compromised eMudhra
+# intermediates (LP: #2171507), but 20.04 is out of standard support and its ca-certificates
+# still trusts it, so deselect it the same way. https://emudhra.we-have-a-problem.com/
+RUN sed -i 's|^mozilla/emSign_ECC_Root_CA_-_G3\.crt$|!&|' /etc/ca-certificates.conf && \
+    grep -qx '!mozilla/emSign_ECC_Root_CA_-_G3.crt' /etc/ca-certificates.conf && \
+    update-ca-certificates
+
+# Constrain the setuptools that pip uses in isolated (PEP 517) build environments; otherwise
+# the latest one is used, which no longer ships pkg_resources. pip 26 no longer applies
+# PIP_CONSTRAINT to build dependencies, hence PIP_BUILD_CONSTRAINT too.
+# https://github.com/overhangio/tutor/issues/1350
+RUN echo "setuptools==69.1.1" > /etc/ecommerce-build-constraints.txt
+ENV PIP_CONSTRAINT=/etc/ecommerce-build-constraints.txt
+ENV PIP_BUILD_CONSTRAINT=/etc/ecommerce-build-constraints.txt
+
 ###### Checkout code
 FROM minimal AS checkout
 
@@ -65,12 +80,12 @@ RUN --mount=type=cache,target=/openedx/.cache/pip,sharing=shared,uid=${APP_USER_
     # https://pypi.org/project/setuptools/
     # https://pypi.org/project/pip/
     # https://pypi.org/project/wheel/
-    setuptools==69.1.1 pip==24.0 wheel==0.43.0
+    setuptools==69.1.1 pip==26.2.2 wheel==0.43.0
 
 # Install a recent version of nodejs
 # https://pypi.org/project/nodeenv
 RUN pip install nodeenv==1.8.0
-RUN nodeenv /openedx/nodeenv --node=16.20.0 --prebuilt
+RUN nodeenv /openedx/nodeenv --node=22.23.4 --prebuilt
 ENV PATH=/openedx/nodeenv/bin:${PATH}
 
 # Copy ecommerce source code
@@ -86,6 +101,10 @@ RUN --mount=type=cache,target=/openedx/.cache/bower,sharing=shared,uid=${APP_USE
 RUN --mount=type=cache,target=/openedx/.cache/pip,sharing=shared,uid=${APP_USER_ID} pip install -r requirements.txt
 # https://pypi.org/project/uWSGI/
 RUN --mount=type=cache,target=/openedx/.cache/pip,sharing=shared,uid=${APP_USER_ID} pip install uwsgi==2.0.27
+
+# Upgrade certifi until the ecommerce requirements pin a version without the compromised emSign roots
+# https://emudhra.we-have-a-problem.com/
+RUN --mount=type=cache,target=/openedx/.cache/pip,sharing=shared,uid=${APP_USER_ID} pip install "certifi>=2026.10.19"
 
 # Install private requirements: this is useful for installing custom payment processors.
 COPY --chown=app:app ./requirements/ /openedx/requirements
